@@ -1,16 +1,19 @@
-# DataVault API — production container image (built by GitHub Actions, stored in ECR)
+# DataVault API - production container image (built by GitHub Actions, stored in ECR)
+# Minimal Python base; matches CI PYTHON_VERSION
+FROM python:3.11-slim
 
-FROM python:3.11-slim  # Minimal Python base; matches CI PYTHON_VERSION
-
-WORKDIR /app           # All app files live here inside the container
+# All app files live here inside the container
+WORKDIR /app
 
 # Install dependencies first (layer cached unless requirements.txt changes)
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY main.py .         # Application code only — config comes from K8s env at runtime
+# Application code only - config comes from K8s env at runtime
+COPY main.py .
 
-EXPOSE 8000            # Documented port; matches Service targetPort and probes
+# Documented port; matches Service targetPort and probes
+EXPOSE 8000
 
 # Docker-level health check (K8s probes in deployment.yaml are the primary health gate)
 HEALTHCHECK --interval=15s --timeout=3s --start-period=5s --retries=3 \
