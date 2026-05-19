@@ -10,7 +10,7 @@ spec:
   project: default
 
   source:
-    repoURL: https://github.com/YOUR_ORG/datavault-gitops.git  # REPLACE with your repo
+    repoURL: https://github.com/nokafor2/DataVault-Deployment-Automation.git  # REPLACE with your repo
     targetRevision: main   # Branch ArgoCD watches for changes
     path: k8s              # Only manifests — not app/ or terraform/
 
