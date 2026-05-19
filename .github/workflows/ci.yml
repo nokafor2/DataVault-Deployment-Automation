@@ -12,6 +12,7 @@ on:
       - ".github/workflows/ci.yml"
   pull_request:
     branches: [main, master]  # PRs run tests only — no deploy
+  workflow_dispatch:  # Manual run from Actions tab (use if empty commits skip CI)
 
 env:
   AWS_REGION: eu-west-2       # Must match terraform var.aws_region
@@ -32,7 +33,8 @@ jobs:
       - name: Install dependencies
         run: |
           pip install -r app/requirements.txt
-          pip install pytest httpx
+          # httpx 0.28+ breaks Starlette TestClient used by FastAPI 0.104 tests
+          pip install pytest "httpx>=0.24,<0.28"
 
       - name: Run pytest
         run: pytest tests/ -v  # Gate: deploy only runs if tests pass
@@ -95,7 +97,7 @@ jobs:
             exit 0
           fi
           # This commit is what you show the FCA bank: who, what, when
-          git commit -m "Deploy ${IMAGE_TAG} — automated GitOps manifest update
+          git commit -m "Deploy ${IMAGE_TAG} - automated GitOps manifest update
 
           Author: ${{ github.actor }}
           Commit: ${{ github.sha }}

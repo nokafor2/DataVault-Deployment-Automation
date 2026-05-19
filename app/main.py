@@ -19,6 +19,8 @@ from fastapi import FastAPI, HTTPException, Header, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
+# This is the main application for the DataVault Compliance API
+# It is a simple API that allows you to manage the audit trail and compliance records 
 # ── Application setup ─────────────────────────────────────────────────────────
 app = FastAPI(
     title="DataVault Compliance API",
