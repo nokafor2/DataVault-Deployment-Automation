@@ -25,7 +25,7 @@ from pydantic import BaseModel
 app = FastAPI(
     title="DataVault Compliance API",
     description="FCA-compliant audit trail platform for UK financial services",
-    version="2.4.1"
+    version="2.4.2"
 )
 
 app.add_middleware(

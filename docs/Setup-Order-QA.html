@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DataVault Setup Order — Q&amp;A Session Notes</title>
+  <style>
+    :root {
+      --bg: #0f1419;
+      --surface: #1a2332;
+      --surface-alt: #243044;
+      --text: #e8edf4;
+      --text-muted: #9aa8bc;
+      --accent: #3b82f6;
+      --accent-soft: rgba(59, 130, 246, 0.15);
+      --success: #22c55e;
+      --warning: #f59e0b;
+      --border: #2d3a4f;
+      --code-bg: #0d1117;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.65;
+      font-size: 16px;
+    }
+    .layout {
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      min-height: 100vh;
+    }
+    nav {
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      padding: 2rem 1.25rem;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow-y: auto;
+    }
+    nav h2 {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+      margin-bottom: 1rem;
+    }
+    nav a {
+      display: block;
+      color: var(--text-muted);
+      text-decoration: none;
+      padding: 0.4rem 0.75rem;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      margin-bottom: 0.15rem;
+    }
+    nav a:hover { background: var(--accent-soft); color: var(--accent); }
+    main { max-width: 920px; padding: 3rem 3rem 5rem; }
+    header.hero {
+      margin-bottom: 2.5rem;
+      padding-bottom: 2rem;
+      border-bottom: 1px solid var(--border);
+    }
+    header.hero h1 {
+      font-size: 2rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+      background: linear-gradient(135deg, #fff 0%, #94b8ff 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    header.hero .subtitle { color: var(--text-muted); font-size: 1rem; }
+    header.hero .meta { color: var(--text-muted); font-size: 0.9rem; margin-top: 0.75rem; }
+    section { margin-bottom: 2.5rem; scroll-margin-top: 2rem; }
+    section h2 {
+      font-size: 1.35rem;
+      margin-bottom: 1.25rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 1px solid var(--border);
+      color: #fff;
+    }
+    .qa {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1.25rem 1.5rem;
+      margin-bottom: 1.25rem;
+    }
+    .qa h3 {
+      font-size: 1.05rem;
+      color: var(--accent);
+      margin-bottom: 0.75rem;
+      font-weight: 600;
+    }
+    .qa h3::before { content: "Q: "; color: var(--text-muted); font-weight: 400; }
+    .qa .answer { color: var(--text); }
+    .qa .answer strong { color: #fff; }
+    pre, code {
+      font-family: "Cascadia Code", "Consolas", monospace;
+      font-size: 0.88rem;
+    }
+    code {
+      background: var(--code-bg);
+      padding: 0.15rem 0.4rem;
+      border-radius: 4px;
+      color: #93c5fd;
+    }
+    pre {
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1rem;
+      overflow-x: auto;
+      margin: 0.75rem 0;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 0.75rem 0;
+      font-size: 0.92rem;
+    }
+    th, td {
+      border: 1px solid var(--border);
+      padding: 0.6rem 0.75rem;
+      text-align: left;
+    }
+    th { background: var(--surface-alt); color: #fff; }
+    .callout {
+      background: var(--accent-soft);
+      border-left: 4px solid var(--accent);
+      padding: 0.75rem 1rem;
+      margin: 0.75rem 0;
+      border-radius: 0 6px 6px 0;
+      font-size: 0.95rem;
+    }
+    .callout-warn {
+      background: rgba(245, 158, 11, 0.12);
+      border-left-color: var(--warning);
+    }
+    ul, ol { margin: 0.5rem 0 0.5rem 1.25rem; }
+    li { margin-bottom: 0.35rem; }
+    @media (max-width: 900px) {
+      .layout { grid-template-columns: 1fr; }
+      nav { position: static; height: auto; }
+      main { padding: 2rem 1.25rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <nav>
+      <h2>Contents</h2>
+      <a href="#intro">Introduction</a>
+      <a href="#aws-terraform">AWS &amp; Terraform</a>
+      <a href="#github-ci">GitHub &amp; CI</a>
+      <a href="#ec2-access">EC2 access</a>
+      <a href="#setup-order">Setup order (steps 5–8)</a>
+      <a href="#kubectl">kubectl &amp; cluster</a>
+      <a href="#argocd">Argo CD</a>
+      <a href="#troubleshooting">Troubleshooting</a>
+    </nav>
+
+    <main>
+      <header class="hero">
+        <h1>Setup Order Q&amp;A</h1>
+        <p class="subtitle">Questions and answers from the DataVault deployment setup session</p>
+        <p class="meta">DataVault Deployment Automation · Session notes · May 2026</p>
+        <p class="meta">Companion doc: <code>DataVault-Platform-Guide.md</code> / <code>DataVault-Platform-Guide.html</code></p>
+      </header>
+
+      <section id="intro">
+        <h2>Introduction</h2>
+        <div class="qa">
+          <h3>What is this document?</h3>
+          <div class="answer">
+            <p>This file records questions asked during first-time setup (Terraform, GitHub, CI, k3s, Argo CD) and the answers provided. Use it alongside the main platform guide for steps 1–8.</p>
+            <p><strong>Setup order at a glance:</strong></p>
+            <table>
+              <thead><tr><th>Step</th><th>Where</th><th>What</th></tr></thead>
+              <tbody>
+                <tr><td>1–2</td><td>Local</td><td>Bootstrap state + <code>terraform apply</code></td></tr>
+                <tr><td>3–4</td><td>EC2 / local Git</td><td>Verify k3s; fix <code>k8s/deployment.yaml</code> image</td></tr>
+                <tr><td>5</td><td>GitHub</td><td>Create repo and push code</td></tr>
+                <tr><td>6</td><td>GitHub + IAM</td><td>Add <code>AWS_ACCESS_KEY_ID</code> / <code>AWS_SECRET_ACCESS_KEY</code> secrets</td></tr>
+                <tr><td>7</td><td>GitHub</td><td>Push to <code>main</code> → CI builds image → ECR</td></tr>
+                <tr><td>8</td><td>EC2</td><td>Argo CD + verify pods and API</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <section id="aws-terraform">
+        <h2>AWS &amp; Terraform</h2>
+
+        <div class="qa">
+          <h3>How do I check my current IAM user on AWS CLI?</h3>
+          <div class="answer">
+            <pre>aws sts get-caller-identity</pre>
+            <p>Shows <code>Account</code>, <code>UserId</code>, and <code>Arn</code> (user or role). List access keys (not the secret):</p>
+            <pre>aws iam list-access-keys --user-name YOUR_IAM_USER_NAME</pre>
+            <p class="callout callout-warn"><strong>Note:</strong> AWS never shows an existing secret access key again. Create a new key if you lost it.</p>
+          </div>
+        </div>
+
+        <div class="qa">
+          <h3>Is DynamoDB set up for Terraform state locking?</h3>
+          <div class="answer">
+            <p><strong>Not in the main stack by default.</strong> The main <code>backend.tf</code> uses S3 only unless you add <code>dynamodb_table</code> via <code>backend.hcl</code>.</p>
+            <p>Use <code>terraform/bootstrap/</code> to create the state bucket and optional lock table (<code>datavault-terraform-locks</code>), then:</p>
+            <pre>terraform output -raw backend_hcl > ../backend.hcl
+cd ..
+terraform init -backend-config=backend.hcl</pre>
+          </div>
+        </div>
+
+        <div class="qa">
+          <h3>After updating the S3 bucket name, is <code>terraform apply</code> all I need?</h3>
+          <div class="answer">
+            <p><strong>No.</strong> The state bucket must exist <em>before</em> <code>terraform init</code>. Full order:</p>
+            <ol>
+              <li>Bootstrap: <code>terraform/bootstrap</code> → <code>apply</code> → generate <code>backend.hcl</code></li>
+              <li>Main: <code>terraform init -backend-config=backend.hcl</code></li>
+              <li><code>terraform apply</code> (with <code>ssh_key_name</code> in <code>terraform.tfvars</code>)</li>
+              <li>Update manifests, GitHub, Argo CD (steps 5–8)</li>
+            </ol>
+          </div>
+        </div>
+
+        <div class="qa">
+          <h3>Can Terraform create the state bucket instead of the CLI?</h3>
+          <div class="answer">
+            <p><strong>Yes,</strong> via the separate <code>terraform/bootstrap/</code> module (local state). The main stack cannot create its own remote backend on first run (chicken-and-egg). Bootstrap once, then point the main stack at that bucket.</p>
+          </div>
+        </div>
+
+        <div class="qa">
+          <h3>How do I get or set <code>ssh_key_name</code>?</h3>
+          <div class="answer">
+            <p>It is the name of an existing EC2 key pair in <strong>eu-west-2</strong>, not created by Terraform.</p>
+            <pre>aws ec2 describe-key-pairs --region eu-west-2
+aws ec2 create-key-pair --key-name datavault-key-pair --region eu-west-2 \
+  --query KeyMaterial --output text | Out-File -Encoding ascii datavault-key-pair.pem</pre>
+            <p>Set in <code>terraform/terraform.tfvars</code>:</p>
+            <pre>ssh_key_name = "datavault-key-pair"</pre>
+            <p>SSH: <code>ssh -i datavault-key-pair.pem ec2-user@&lt;EC2_PUBLIC_IP&gt;</code></p>
+          </div>
+        </div>
+
+        <div class="qa">
+          <h3><code>terraform apply</code> failed on security group descriptions</h3>
+          <div class="answer">
+            <p>AWS rejects Unicode em dashes (<code>—</code>) in security group rule descriptions. Use ASCII hyphens (<code>-</code>) instead, e.g. <code>SSH - admin access to EC2</code>.</p>
+          </div>
+        </div>
+      </section>
+
+      <section id="github-ci">
+        <h2>GitHub &amp; CI</h2>
+
+        <div class="qa">
+          <h3>Is a specific IAM user defined in the repo?</h3>
+          <div class="answer">
+            <p><strong>No.</strong> Terraform creates an <strong>IAM role</strong> for EC2 (<code>datavault-k3s-ec2-role</code>). GitHub Actions uses <strong>repository secrets</strong> you create (e.g. IAM user <code>datavault-github-actions</code>). Only secret <em>names</em> are in <code>ci.yml</code>.</p>
+          </div>
+        </div>
+
+        <div class="qa">
+          <h3>I used the wrong Git remote (<code>datavault-gitops</code>). How do I fix it?</h3>
+          <div class="answer">
+            <pre>git remote set-url origin https://github.com/nokafor2/DataVault-Deployment-Automation.git
+git remote -v
+git push -u origin main</pre>
+            <p>Update <code>argocd/application.yaml</code> <code>repoURL</code> to match, then commit and push.</p>
+          </div>
+        </div>
+
+        <div class="qa">
+          <h3>What does <code>git commit --allow-empty -m "Trigger first CI build"</code> do?</h3>
+          <div class="answer">
+            <p>Creates a commit with <strong>no file changes</strong> so you can push and trigger CI when you have nothing else to commit.</p>
+            <p class="callout callout-warn"><strong>Caveat:</strong> Your workflow only runs when paths under <code>app/</code>, <code>tests/</code>, <code>k8s/</code>, or <code>.github/workflows/</code> change. An empty commit may <strong>not</strong> trigger CI. Prefer pushing a real change (e.g. <code>app/</code> or workflow file) or use <code>workflow_dispatch</code>.</p>
+          </div>
+        </div>
+
+        <div class="qa">
+          <h3>CI is green but nothing commits / deploy manifest not updating</h3>
+          <div class="answer">
+            <p>The bot commit happens in the <strong>build-and-deploy</strong> job after tests, ECR push, and manifest edit. Common blockers:</p>
+            <ul>
+              <li><strong>Tests failed</strong> → deploy job skipped</li>
+              <li><strong>Empty / argocd-only commits</strong> → workflow not triggered (path filters)</li>
+              <li><strong>Missing AWS secrets</strong> → ECR push fails</li>
+              <li><strong>Dockerfile parse error</strong> → inline comments on <code>FROM</code> line (fixed by moving comments to separate lines)</li>
+              <li><strong>httpx 0.28+</strong> → pytest/TestClient failure (pin <code>httpx&lt;0.28</code> in CI)</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="qa">
+          <h3>Explain: check ECR, then <code>git pull</code> if CI updated the manifest</h3>
+          <div class="answer">
+            <p><strong>Green Actions</strong> means: tests passed, image pushed to ECR, and <code>k8s/deployment.yaml</code> updated on GitHub by <code>github-actions[bot]</code>.</p>
+            <table>
+              <thead><tr><th>Check</th><th>Why</th></tr></thead>
+              <tbody>
+                <tr><td>ECR → <code>datavault-api</code></td><td>Confirms image exists (pods need it)</td></tr>
+                <tr><td><code>git pull</code> on laptop</td><td>Syncs local repo with bot’s manifest commit</td></tr>
+              </tbody>
+            </table>
+            <p>CI does <strong>not</strong> run kubectl. Argo CD or manual <code>kubectl apply</code> on EC2 deploys to the cluster.</p>
+          </div>
+        </div>
+
+        <div class="qa">
+          <h3>Docker build failed: <code>FROM requires either one or three arguments</code></h3>
+          <div class="answer">
+            <p>Inline comments on the same line as <code>FROM</code> break the Docker parser. Put comments on their own lines:</p>
+            <pre># Minimal Python base
+FROM python:3.11-slim</pre>
+          </div>
+        </div>
+      </section>
+
+      <section id="ec2-access">
+        <h2>EC2 access</h2>
+
+        <div class="qa">
+          <h3>EC2 Instance Connect does not open / SSH connection failed</h3>
+          <div class="answer">
+            <ul>
+              <li><strong>Pop-up blocker</strong> — allow pop-ups for AWS Console</li>
+              <li><strong>Username</strong> — use <code>ec2-user</code> on Amazon Linux 2023</li>
+              <li><strong>Prefer SSH with .pem</strong> — <code>ssh -i datavault-key-pair.pem ec2-user@&lt;PUBLIC_IP&gt;</code></li>
+              <li><strong>Session Manager</strong> — needs SSM agent online (may take several minutes after boot)</li>
+            </ul>
+            <p>Instance Connect can fail even when port 22 is open if ephemeral keys are not accepted; <code>user_data.sh</code> was updated to install <code>ec2-instance-connect</code> and restart <code>sshd</code> on new instances.</p>
+          </div>
+        </div>
+      </section>
+
+      <section id="setup-order">
+        <h2>Setup order (steps 5–8)</h2>
+
+        <div class="qa">
+          <h3>Where do I replace <code>000000000000</code> in deployment.yaml?</h3>
+          <div class="answer">
+            <p>Line <strong>32</strong> — the <code>image:</code> field:</p>
+            <pre>image: 791778419317.dkr.ecr.eu-west-2.amazonaws.com/datavault-api:latest</pre>
+            <p>Get account ID: <code>terraform output aws_account_id</code></p>
+          </div>
+        </div>
+
+        <div class="qa">
+          <h3>Should I run <code>kubectl apply -f k8s/</code> on my EC2 server?</h3>
+          <div class="answer">
+            <p><strong>Yes</strong> — kubectl must target the k3s API on the EC2 node (after <code>export KUBECONFIG=/etc/rancher/k3s/k3s.yaml</code>).</p>
+            <p>Clone the repo on EC2, then either:</p>
+            <ul>
+              <li><strong>Path A (GitOps):</strong> <code>kubectl apply -f argocd/application.yaml</code> — Argo CD syncs <code>k8s/</code> from Git</li>
+              <li><strong>Path B (manual):</strong> <code>kubectl apply -f k8s/</code> first, then register Argo CD</li>
+            </ul>
+            <p>Step 7 (image in ECR) should complete before step 8.</p>
+          </div>
+        </div>
+      </section>
+
+      <section id="kubectl">
+        <h2>kubectl &amp; cluster commands</h2>
+
+        <div class="qa">
+          <h3>What does <code>export KUBECONFIG=/etc/rancher/k3s/k3s.yaml</code> do?</h3>
+          <div class="answer">
+            <p>Tells <code>kubectl</code> which cluster to use (the k3s config written at install time). Run on EC2 after SSH. Alternative: <code>sudo k3s kubectl get nodes</code>.</p>
+          </div>
+        </div>
+
+        <div class="qa">
+          <h3>What does <code>kubectl apply -f k8s/</code> do?</h3>
+          <div class="answer">
+            <p>Creates or updates all manifests in <code>k8s/</code>: Deployment, Service, ConfigMap, Secret, HPA. Use for manual first deploy; with Argo CD, Git changes usually replace this.</p>
+          </div>
+        </div>
+
+        <div class="qa">
+          <h3>What does <code>kubectl get pods -w</code> do?</h3>
+          <div class="answer">
+            <p>Lists pods and <strong>watches</strong> live. Look for <code>Running</code> and <code>1/1</code> READY. Ctrl+C to stop. Use <code>kubectl logs &lt;pod&gt;</code> if status is <code>ImagePullBackOff</code> or <code>CrashLoopBackOff</code>.</p>
+          </div>
+        </div>
+
+        <div class="qa">
+          <h3>What do the Argo CD + health check commands do?</h3>
+          <div class="answer">
+            <pre>kubectl apply -f argocd/application.yaml
+kubectl get pods -w
+curl -s http://localhost:30080/health</pre>
+            <ul>
+              <li><strong>apply argocd/</strong> — register Git repo/path so Argo CD syncs <code>k8s/</code> (run once)</li>
+              <li><strong>get pods -w</strong> — watch until app pods are healthy</li>
+              <li><strong>curl :30080/health</strong> — hit API via NodePort on the EC2 host</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <section id="argocd">
+        <h2>Argo CD — apply and verify</h2>
+
+        <div class="qa">
+          <h3>How do I execute and check “apply argocd/application.yaml so Git owns future deploys”?</h3>
+          <div class="answer">
+            <p><strong>Execute (once on EC2):</strong></p>
+            <pre>export KUBECONFIG=/etc/rancher/k3s/k3s.yaml
+git clone https://github.com/nokafor2/DataVault-Deployment-Automation.git
+cd DataVault-Deployment-Automation
+kubectl apply -f argocd/application.yaml</pre>
+            <p><strong>Check:</strong></p>
+            <pre>kubectl get application -n argocd
+# Want: SYNC STATUS = Synced, HEALTH STATUS = Healthy
+
+kubectl get pods
+curl -s http://localhost:30080/health</pre>
+            <p><strong>UI:</strong> <code>http://&lt;EC2_PUBLIC_IP&gt;:30081</code> — user <code>admin</code>, password from:</p>
+            <pre>kubectl -n argocd get secret argocd-initial-admin-secret \
+  -o jsonpath='{.data.password}' | base64 -d; echo</pre>
+            <p class="callout"><strong>After this:</strong> pushes to <code>main</code> → CI updates <code>k8s/deployment.yaml</code> → Argo CD syncs → no SSH needed for routine deploys.</p>
+          </div>
+        </div>
+      </section>
+
+      <section id="troubleshooting">
+        <h2>Quick troubleshooting</h2>
+        <table>
+          <thead><tr><th>Symptom</th><th>Likely cause</th><th>Action</th></tr></thead>
+          <tbody>
+            <tr><td>No bot commit on GitHub</td><td>CI deploy job failed or skipped</td><td>Actions logs; fix tests, Dockerfile, AWS secrets</td></tr>
+            <tr><td>CI not running on push</td><td>Path filters / empty commit</td><td>Change <code>app/</code> or workflow; or Run workflow manually</td></tr>
+            <tr><td><code>ImagePullBackOff</code></td><td>No image in ECR</td><td>Complete step 7; verify ECR tags</td></tr>
+            <tr><td>Argo CD OutOfSync / Failed</td><td>Wrong repo URL or branch</td><td>Fix <code>argocd/application.yaml</code></td></tr>
+            <tr><td>API not reachable</td><td>Pods not ready or SG</td><td><code>kubectl get pods</code>; allow port 30080</td></tr>
+            <tr><td><code>kubectl</code> not found</td><td>KUBECONFIG not set</td><td><code>export KUBECONFIG=/etc/rancher/k3s/k3s.yaml</code></td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 2rem;">
+        DataVault Technologies — Amdari Internship Programme · Setup session Q&amp;A
+      </p>
+    </main>
+  </div>
+</body>
+</html>
