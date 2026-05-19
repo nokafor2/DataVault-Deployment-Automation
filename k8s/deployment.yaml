@@ -1,0 +1,76 @@
+# Deployment: declares desired state for the DataVault API (replicas, image, probes, env).
+# ArgoCD syncs this file from Git — every image change is a commit (FCA audit trail).
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: datavault-api
+  namespace: default
+  labels:
+    app: datavault-api  # Must match Service selector and HPA scaleTargetRef
+spec:
+  replicas: 2  # Baseline HA; HPA can scale up to 5 under load
+
+  selector:
+    matchLabels:
+      app: datavault-api
+
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1        # Allow one extra pod during rollout
+      maxUnavailable: 0  # Never drop below desired count — zero-downtime deploys
+
+  template:
+    metadata:
+      labels:
+        app: datavault-api
+    spec:
+      containers:
+        - name: datavault-api
+          # REPLACE 000000000000 with terraform output aws_account_id before first deploy
+          # CI overwrites the tag on every push to main (GitHub Actions)
+          image: 791778419317.dkr.ecr.eu-west-2.amazonaws.com/datavault-api:latest
+          imagePullPolicy: Always  # Always pull — ensures new ECR tags are picked up
+
+          ports:
+            - containerPort: 8000
+              name: http
+
+          # Non-sensitive config (ConfigMap) + secrets (Secret) injected as env vars
+          envFrom:
+            - configMapRef:
+                name: datavault-config
+            - secretRef:
+                name: datavault-secrets
+
+          env:
+            - name: GIT_COMMIT
+              value: "initial"  # CI updates this — visible at /api/deployment/status
+
+          resources:
+            requests:  # Minimum guaranteed — used by scheduler and HPA baseline
+              cpu: 100m
+              memory: 128Mi
+            limits:    # Hard cap — pod throttled/OOM-killed if exceeded
+              cpu: 500m
+              memory: 256Mi
+
+          # Liveness: restart pod if app is dead (self-healing at 3am)
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 10  # Grace period after container start
+            periodSeconds: 15
+            timeoutSeconds: 3
+            failureThreshold: 3      # 3 failures → restart
+
+          # Readiness: remove pod from Service endpoints until app can serve traffic
+          readinessProbe:
+            httpGet:
+              path: /ready   # Stricter than /health — blocks traffic during startup
+              port: 8000
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3

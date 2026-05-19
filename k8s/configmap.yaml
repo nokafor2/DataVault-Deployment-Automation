@@ -1,0 +1,12 @@
+# ConfigMap: non-sensitive environment variables (safe to store in Git).
+# Separates config from code — prevents Valentine's Day-style missing env on one server.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: datavault-config
+  namespace: default
+  labels:
+    app: datavault-api
+data:
+  APP_ENV: "production"   # Shown in /health and /api/deployment/status
+  LOG_LEVEL: "info"       # Application log verbosity

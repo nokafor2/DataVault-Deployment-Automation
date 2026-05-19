@@ -1,0 +1,103 @@
+# DataVault CI/CD — test, build, push to ECR, update GitOps manifest (audit trail commit).
+# Triggers ArgoCD sync when manifest commit lands on main.
+name: DataVault CI — Build, Push, GitOps
+
+on:
+  push:
+    branches: [main, master]
+    paths:
+      - "app/**"
+      - "tests/**"
+      - "k8s/**"
+      - ".github/workflows/ci.yml"
+  pull_request:
+    branches: [main, master]  # PRs run tests only — no deploy
+
+env:
+  AWS_REGION: eu-west-2       # Must match terraform var.aws_region
+  ECR_REPOSITORY: datavault-api  # Must match terraform ECR name (${project_name}-api)
+  PYTHON_VERSION: "3.11"
+
+jobs:
+  test:
+    name: Run API tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install dependencies
+        run: |
+          pip install -r app/requirements.txt
+          pip install pytest httpx
+
+      - name: Run pytest
+        run: pytest tests/ -v  # Gate: deploy only runs if tests pass
+
+  build-and-deploy:
+    name: Build image and update GitOps manifests
+    needs: test
+    # Deploy job only on merge to main — not on PRs or feature branches
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write  # Required to push manifest commit back to repo
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build and push Docker image
+        id: build
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG: ${{ github.sha }}  # Immutable tag — FCA audit trail
+        run: |
+          IMAGE_URI="${ECR_REGISTRY}/${ECR_REPOSITORY}:${IMAGE_TAG}"
+          docker build -t "${IMAGE_URI}" -t "${ECR_REGISTRY}/${ECR_REPOSITORY}:latest" ./app
+          docker push "${IMAGE_URI}"
+          docker push "${ECR_REGISTRY}/${ECR_REPOSITORY}:latest"
+          echo "image_uri=${IMAGE_URI}" >> "$GITHUB_OUTPUT"
+
+      - name: Update Kubernetes deployment manifest
+        env:
+          IMAGE_URI: ${{ steps.build.outputs.image_uri }}
+          GIT_COMMIT: ${{ github.sha }}
+        run: |
+          # Point deployment at new ECR image
+          sed -i "s|image: .*dkr.ecr.*amazonaws.com/datavault-api:.*|image: ${IMAGE_URI}|" k8s/deployment.yaml
+          # Record deploy commit in pod env (visible via /api/deployment/status)
+          sed -i '/name: GIT_COMMIT/,+1 s|value: ".*"|value: "'"${GIT_COMMIT}"'"|' k8s/deployment.yaml
+
+      - name: Commit manifest change (GitOps audit trail)
+        env:
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add k8s/deployment.yaml
+          if git diff --staged --quiet; then
+            echo "No manifest changes to commit"
+            exit 0
+          fi
+          # This commit is what you show the FCA bank: who, what, when
+          git commit -m "Deploy ${IMAGE_TAG} — automated GitOps manifest update
+
+          Author: ${{ github.actor }}
+          Commit: ${{ github.sha }}
+          Workflow: ${{ github.workflow }} #${{ github.run_number }}"
+          git push  # ArgoCD detects change → syncs cluster

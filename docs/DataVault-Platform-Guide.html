@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DataVault Deployment Automation Platform — Guide</title>
+  <style>
+    :root {
+      --bg: #0f1419;
+      --surface: #1a2332;
+      --surface-alt: #243044;
+      --text: #e8edf4;
+      --text-muted: #9aa8bc;
+      --accent: #3b82f6;
+      --accent-soft: rgba(59, 130, 246, 0.15);
+      --success: #22c55e;
+      --warning: #f59e0b;
+      --border: #2d3a4f;
+      --code-bg: #0d1117;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.65;
+      font-size: 16px;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 260px 1fr;
+      min-height: 100vh;
+    }
+
+    nav {
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      padding: 2rem 1.25rem;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow-y: auto;
+    }
+
+    nav h2 {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+      margin-bottom: 1rem;
+    }
+
+    nav a {
+      display: block;
+      color: var(--text-muted);
+      text-decoration: none;
+      padding: 0.4rem 0.75rem;
+      border-radius: 6px;
+      font-size: 0.9rem;
+      margin-bottom: 0.15rem;
+      transition: background 0.15s, color 0.15s;
+    }
+
+    nav a:hover {
+      background: var(--accent-soft);
+      color: var(--accent);
+    }
+
+    main {
+      max-width: 900px;
+      padding: 3rem 3rem 5rem;
+    }
+
+    header.hero {
+      margin-bottom: 3rem;
+      padding-bottom: 2rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    header.hero h1 {
+      font-size: 2.25rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin-bottom: 0.5rem;
+      background: linear-gradient(135deg, #fff 0%, #94b8ff 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    header.hero .subtitle {
+      font-size: 1.1rem;
+      color: var(--text-muted);
+      margin-bottom: 0.75rem;
+    }
+
+    header.hero .tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+
+    .tag {
+      background: var(--accent-soft);
+      color: var(--accent);
+      padding: 0.25rem 0.75rem;
+      border-radius: 999px;
+      font-size: 0.8rem;
+      font-weight: 500;
+    }
+
+    section {
+      margin-bottom: 3rem;
+      scroll-margin-top: 2rem;
+    }
+
+    section h2 {
+      font-size: 1.5rem;
+      color: #fff;
+      margin-bottom: 1rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 2px solid var(--accent);
+      display: inline-block;
+    }
+
+    section h3 {
+      font-size: 1.15rem;
+      color: #c5d4ea;
+      margin: 1.75rem 0 0.75rem;
+    }
+
+    p { margin-bottom: 1rem; color: var(--text-muted); }
+    p strong, li strong { color: var(--text); }
+
+    ol, ul {
+      margin: 0 0 1rem 1.25rem;
+      color: var(--text-muted);
+    }
+
+    li { margin-bottom: 0.4rem; }
+
+    pre {
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1.25rem;
+      overflow-x: auto;
+      font-family: "Cascadia Code", "Consolas", monospace;
+      font-size: 0.85rem;
+      line-height: 1.5;
+      margin: 1rem 0;
+      color: #a5d6ff;
+    }
+
+    code {
+      font-family: "Cascadia Code", "Consolas", monospace;
+      background: var(--code-bg);
+      padding: 0.15rem 0.4rem;
+      border-radius: 4px;
+      font-size: 0.88em;
+      color: #79c0ff;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1rem 0 1.5rem;
+      font-size: 0.92rem;
+    }
+
+    th, td {
+      border: 1px solid var(--border);
+      padding: 0.65rem 0.85rem;
+      text-align: left;
+    }
+
+    th {
+      background: var(--surface-alt);
+      color: #fff;
+      font-weight: 600;
+    }
+
+    td { color: var(--text-muted); }
+    tr:nth-child(even) td { background: rgba(255,255,255,0.02); }
+
+    .flow-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin: 1.25rem 0;
+    }
+
+    .flow-steps {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      align-items: center;
+    }
+
+    .flow-step {
+      background: var(--surface-alt);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.75rem 1.25rem;
+      text-align: center;
+      width: 100%;
+      max-width: 520px;
+      font-size: 0.9rem;
+      color: var(--text);
+    }
+
+    .flow-arrow {
+      color: var(--accent);
+      font-size: 1.25rem;
+      padding: 0.25rem 0;
+    }
+
+    /* Mermaid architecture map — horizontal scroll for wide diagrams */
+    .mermaid-wrap {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      margin: 1.5rem 0 2rem;
+      overflow-x: auto;
+      overflow-y: hidden;
+      padding: 1.75rem 1.5rem;
+      -webkit-overflow-scrolling: touch;
+      box-shadow: inset 0 0 0 1px rgba(59, 130, 246, 0.08);
+    }
+
+    .mermaid-wrap::-webkit-scrollbar {
+      height: 10px;
+    }
+
+    .mermaid-wrap::-webkit-scrollbar-track {
+      background: var(--code-bg);
+      border-radius: 6px;
+    }
+
+    .mermaid-wrap::-webkit-scrollbar-thumb {
+      background: var(--border);
+      border-radius: 6px;
+    }
+
+    .mermaid-wrap::-webkit-scrollbar-thumb:hover {
+      background: var(--accent);
+    }
+
+    .mermaid-wrap .mermaid {
+      display: flex;
+      justify-content: center;
+      min-width: min(100%, 680px);
+    }
+
+    .mermaid-wrap svg {
+      max-width: none !important;
+      height: auto;
+    }
+
+    .diagram-hint {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-top: -0.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .callout {
+      background: var(--accent-soft);
+      border-left: 4px solid var(--accent);
+      padding: 1rem 1.25rem;
+      border-radius: 0 8px 8px 0;
+      margin: 1rem 0;
+      color: var(--text);
+    }
+
+    .callout-success {
+      background: rgba(34, 197, 94, 0.12);
+      border-left-color: var(--success);
+    }
+
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 1rem;
+      margin: 1rem 0;
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1rem 1.25rem;
+    }
+
+    .card h4 {
+      color: var(--accent);
+      font-size: 0.95rem;
+      margin-bottom: 0.35rem;
+    }
+
+    .card p { font-size: 0.88rem; margin: 0; }
+
+    footer.doc-footer {
+      margin-top: 3rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid var(--border);
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      font-style: italic;
+    }
+
+    hr {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 2rem 0;
+    }
+
+    @media (max-width: 900px) {
+      .layout { grid-template-columns: 1fr; }
+      nav {
+        position: relative;
+        height: auto;
+        border-right: none;
+        border-bottom: 1px solid var(--border);
+      }
+      main { padding: 2rem 1.25rem 3rem; }
+    }
+
+    @media print {
+      body { background: #fff; color: #111; }
+      nav { display: none; }
+      .layout { grid-template-columns: 1fr; }
+      main { max-width: 100%; }
+      section h2 { color: #111; border-color: #333; }
+      pre, code { background: #f5f5f5; color: #333; }
+      th { background: #eee; color: #111; }
+      td { color: #333; }
+    }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <nav>
+      <h2>Contents</h2>
+      <a href="#structure">1. Project Structure</a>
+      <a href="#flow">2. End-to-End Flow</a>
+      <a href="#flow-map" style="padding-left:1.5rem;font-size:0.85rem;">↳ Architecture map</a>
+      <a href="#layers">3. Layer by Layer</a>
+      <a href="#problems">4. Problems Solved</a>
+      <a href="#setup">5. Setup Order</a>
+      <a href="#setup-glance" style="padding-left:1.5rem;font-size:0.85rem;">↳ At a glance</a>
+      <a href="#setup-phase2" style="padding-left:1.5rem;font-size:0.85rem;">↳ Steps 5–7 Git &amp; CI</a>
+      <a href="#setup-phase3" style="padding-left:1.5rem;font-size:0.85rem;">↳ Step 8 cluster</a>
+      <a href="#demos">6. Demo Scenarios</a>
+      <a href="#placeholders">7. Placeholders</a>
+      <a href="#architecture">8. Architecture Summary</a>
+    </nav>
+
+    <main>
+      <header class="hero">
+        <h1>DataVault Deployment Automation Platform</h1>
+        <p class="subtitle">DataVault Technologies — GitOps Remediation Platform Guide</p>
+        <div class="tags">
+          <span class="tag">Kubernetes</span>
+          <span class="tag">ArgoCD</span>
+          <span class="tag">Terraform</span>
+          <span class="tag">GitHub Actions</span>
+        </div>
+      </header>
+
+      <section id="structure">
+        <h2>1. Project Structure</h2>
+        <pre>datavault-gitops/
+  app/
+    main.py              (FastAPI app - provided)
+    requirements.txt
+    Dockerfile           (container image)
+  k8s/
+    deployment.yaml      (2 replicas, probes)
+    service.yaml         (NodePort 30080)
+    configmap.yaml       (APP_ENV, LOG_LEVEL)
+    secret.yaml          (API_KEY base64)
+    hpa.yaml             (2-5 pods, CPU 70%)
+  terraform/
+    main.tf              (ECR + EC2 k3s)
+    variables.tf
+    outputs.tf
+    backend.tf           (S3 remote state)
+    user_data.sh         (k3s, metrics-server, ArgoCD)
+  argocd/
+    application.yaml     (ArgoCD watches k8s/)
+  .github/workflows/
+    ci.yml               (test, build, ECR, manifest)
+  tests/</pre>
+      </section>
+
+      <section id="flow">
+        <h2>2. End-to-End Flow</h2>
+        <p>The platform follows a linear pipeline from developer push to running pods:</p>
+        <ol>
+          <li><strong>Developer</strong> pushes code to GitHub</li>
+          <li><strong>GitHub Actions</strong> runs tests, builds Docker image, pushes to ECR, updates <code>k8s/deployment.yaml</code>, commits back to Git (audit trail)</li>
+          <li><strong>Git</strong> remains the single source of truth for both application code and Kubernetes manifests</li>
+          <li><strong>ArgoCD</strong> detects manifest changes and syncs the k3s cluster</li>
+          <li><strong>Kubernetes</strong> runs 2+ replicas with probes, HPA, and self-healing</li>
+          <li><strong>Clients</strong> reach the API via NodePort <code>http://&lt;EC2-IP&gt;:30080</code></li>
+        </ol>
+
+        <h3 id="flow-map">End-to-End Architecture Map</h3>
+        <p class="diagram-hint">Scroll horizontally if the diagram extends beyond the panel.</p>
+        <div class="mermaid-wrap">
+          <pre class="mermaid">
+flowchart TB
+    subgraph dev ["Developer"]
+        A["Push code to GitHub"]
+    end
+
+    subgraph ci ["GitHub Actions"]
+        B["Run pytest"]
+        C["docker build app/"]
+        D["Push image to ECR"]
+        E["Update k8s/deployment.yaml image tag"]
+        F["Git commit manifest - audit trail"]
+    end
+
+    subgraph git ["Git - single source of truth"]
+        G["Repo: app + k8s manifests"]
+    end
+
+    subgraph infra ["Terraform on AWS"]
+        H["ECR repository"]
+        I["EC2 t3.small + k3s"]
+    end
+
+    subgraph gitops ["ArgoCD on k3s"]
+        J["Watches GitHub k8s/"]
+        K["Sync cluster to Git state"]
+    end
+
+    subgraph k8s ["Kubernetes cluster"]
+        L["Deployment - 2 replicas"]
+        M["Service NodePort 30080"]
+        N["HPA scales on CPU"]
+        O["Liveness / Readiness probes"]
+    end
+
+    A --> B --> C --> D --> E --> F --> G
+    G --> J --> K --> L
+    L --> M
+    L --> N
+    L --> O
+    D --> H
+    I --> J
+    H --> L
+          </pre>
+        </div>
+
+        <h3>Pipeline Summary</h3>
+        <div class="flow-box">
+          <div class="flow-steps">
+            <div class="flow-step">Developer Push</div>
+            <div class="flow-arrow">↓</div>
+            <div class="flow-step">GitHub Actions: pytest → docker build → ECR push → update deployment.yaml → git commit</div>
+            <div class="flow-arrow">↓</div>
+            <div class="flow-step">Git Repository (audit trail)</div>
+            <div class="flow-arrow">↓</div>
+            <div class="flow-step">ArgoCD watches k8s/ → sync cluster to Git state</div>
+            <div class="flow-arrow">↓</div>
+            <div class="flow-step">k3s Cluster: Deployment (2 replicas) → Service (NodePort 30080) → HPA</div>
+          </div>
+        </div>
+        <p class="callout"><strong>Infrastructure (Terraform):</strong> ECR stores images · EC2 t3.small runs k3s + ArgoCD + app workloads</p>
+      </section>
+
+      <section id="layers">
+        <h2>3. Layer by Layer</h2>
+
+        <h3>3.1 Application (<code>app/</code>)</h3>
+        <p>The FastAPI app exposes:</p>
+        <table>
+          <thead>
+            <tr><th>Endpoint</th><th>Role</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>/health</code></td><td><strong>Liveness</strong> — if it fails, Kubernetes restarts the pod</td></tr>
+            <tr><td><code>/ready</code></td><td><strong>Readiness</strong> — if it fails, the Service stops sending traffic</td></tr>
+            <tr><td><code>/api/*</code></td><td>Business API (requires <code>x-api-key</code> from Secret)</td></tr>
+          </tbody>
+        </table>
+        <p>The <strong>Dockerfile</strong> packages <code>main.py</code> on Python 3.11 and runs <code>uvicorn</code> on port <strong>8000</strong>.</p>
+
+        <h3>3.2 Kubernetes Manifests (<code>k8s/</code>)</h3>
+        <table>
+          <thead>
+            <tr><th>File</th><th>Purpose</th><th>Connects to</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><strong>configmap.yaml</strong></td><td>Non-sensitive env: <code>APP_ENV</code>, <code>LOG_LEVEL</code></td><td>Injected into pods via <code>envFrom</code></td></tr>
+            <tr><td><strong>secret.yaml</strong></td><td><code>API_KEY</code> (base64)</td><td>App authentication</td></tr>
+            <tr><td><strong>deployment.yaml</strong></td><td>2 replicas, rolling updates, probes, ECR image</td><td>Pulls from ECR; reads ConfigMap + Secret</td></tr>
+            <tr><td><strong>service.yaml</strong></td><td>NodePort <strong>30080</strong> → pod port <strong>8000</strong></td><td><code>http://&lt;EC2-IP&gt;:30080</code></td></tr>
+            <tr><td><strong>hpa.yaml</strong></td><td>Min 2, max 5 pods at <strong>70% CPU</strong></td><td>Requires metrics-server (<code>user_data.sh</code>)</td></tr>
+          </tbody>
+        </table>
+        <p class="callout callout-success"><strong>Self-healing:</strong> If a pod dies, the Deployment controller creates a new one. Liveness failures trigger restarts. Readiness keeps unhealthy pods out of traffic during rollouts.</p>
+
+        <h3>3.3 Terraform (<code>terraform/</code>)</h3>
+        <table>
+          <thead>
+            <tr><th>Resource</th><th>Purpose</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><strong>ECR</strong> (<code>datavault-api</code>)</td><td>Private store for images built by CI</td></tr>
+            <tr><td><strong>EC2 t3.small</strong></td><td>Runs k3s (Kubernetes) + ArgoCD</td></tr>
+            <tr><td><strong>IAM role</strong></td><td>Lets the node pull from ECR</td></tr>
+            <tr><td><strong>Security group</strong></td><td>SSH (22), API (30080), ArgoCD UI (30081)</td></tr>
+            <tr><td><strong>S3 backend</strong></td><td>Versioned, shared Terraform state</td></tr>
+          </tbody>
+        </table>
+        <p><strong><code>user_data.sh</code> on first boot:</strong></p>
+        <ol>
+          <li>Installs <strong>k3s</strong></li>
+          <li>Installs <strong>metrics-server</strong> (for HPA)</li>
+          <li>Configures <strong>ECR login</strong> (cron every 6 hours)</li>
+          <li>Installs <strong>ArgoCD</strong></li>
+        </ol>
+        <p>After <code>terraform apply</code>, use outputs (<code>ecr_repository_url</code>, <code>k3s_public_ip</code>) to update <code>k8s/deployment.yaml</code> image URI and configure CI secrets.</p>
+
+        <h3>3.4 GitHub Actions (<code>.github/workflows/ci.yml</code>)</h3>
+        <p>On push to <code>main</code>:</p>
+        <ol>
+          <li><strong>test</strong> — <code>pytest tests/</code></li>
+          <li><strong>build-and-deploy</strong> — build image from <code>app/</code>, push to ECR with tag <code>github.sha</code></li>
+          <li><strong>Update</strong> <code>k8s/deployment.yaml</code> with new image + <code>GIT_COMMIT</code></li>
+          <li><strong>Commit &amp; push</strong> — that commit is the <strong>FCA audit record</strong> (who, what, when)</li>
+        </ol>
+        <p>ArgoCD sees the manifest change and rolls out the new version automatically.</p>
+
+        <h3>3.5 ArgoCD (<code>argocd/application.yaml</code>)</h3>
+        <p>Applied <strong>once</strong> on the cluster:</p>
+        <pre>kubectl apply -f argocd/application.yaml</pre>
+        <p>ArgoCD watches your GitHub repo's <code>k8s/</code> folder. When Git and the cluster differ, it syncs the cluster to match Git.</p>
+        <table>
+          <thead>
+            <tr><th>Old (Valentine's Day)</th><th>New (GitOps)</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>SSH + manual restart</td><td>Git commit → ArgoCD sync</td></tr>
+            <tr><td>No rollback</td><td><code>git revert</code> → ArgoCD redeploys previous version</td></tr>
+            <tr><td>No audit trail</td><td>Git log + ArgoCD sync history</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section id="problems">
+        <h2>4. How Each Problem Is Solved</h2>
+        <table>
+          <thead>
+            <tr><th>Valentine's Day Problem</th><th>Solution in This Repo</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Manual SSH deploys</td><td>CI + ArgoCD — no SSH for app deploys</td></tr>
+            <tr><td>No rollback</td><td><code>git revert</code> + ArgoCD sync</td></tr>
+            <tr><td>No deployment audit trail</td><td>Every deploy = Git commit (author, SHA, message)</td></tr>
+            <tr><td>No self-healing</td><td>Kubernetes restarts failed pods; liveness on <code>/health</code></td></tr>
+            <tr><td>Config drift between servers</td><td>One declarative <code>k8s/</code> set for the whole cluster</td></tr>
+            <tr><td>Knowledge in one engineer's head</td><td>Everything in Git + Terraform</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section id="setup">
+        <h2>5. Setup Order (chronological)</h2>
+        <p>Follow these steps <strong>in order</strong>. Steps <strong>1–4</strong> provision AWS. Steps <strong>5–8</strong> connect GitHub, CI, and the cluster.</p>
+        <p class="callout"><strong>You are here if steps 1–4 are done:</strong> start at <strong>step 5</strong> (create GitHub repo), then <strong>6 → 7 → 8</strong>.</p>
+
+        <h3 id="setup-glance">At a glance</h3>
+        <table>
+          <thead>
+            <tr><th>Step</th><th>Where</th><th>What</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><strong>1</strong></td><td>Local / AWS</td><td>Bootstrap Terraform state (<code>terraform/bootstrap/</code>)</td></tr>
+            <tr><td><strong>2</strong></td><td>Local</td><td><code>terraform apply</code> → ECR + EC2 (k3s + ArgoCD)</td></tr>
+            <tr><td><strong>3</strong></td><td>EC2 (SSH)</td><td>Verify cluster: <code>kubectl get nodes</code></td></tr>
+            <tr><td><strong>4</strong></td><td>Local (Git)</td><td>Fix <code>k8s/deployment.yaml</code> image (AWS account ID)</td></tr>
+            <tr><td><strong>5</strong></td><td>GitHub</td><td><strong>Create repository</strong> and push your project</td></tr>
+            <tr><td><strong>6</strong></td><td>GitHub + AWS</td><td>Add CI secrets (IAM user for ECR push)</td></tr>
+            <tr><td><strong>7</strong></td><td>GitHub</td><td>Push to <code>main</code> → CI builds image and pushes to ECR</td></tr>
+            <tr><td><strong>8</strong></td><td>EC2 (SSH)</td><td>Deploy to cluster (ArgoCD and/or <code>kubectl apply</code>)</td></tr>
+          </tbody>
+        </table>
+        <p>After step 8, routine deploys are: <strong>push to <code>main</code> → CI → ArgoCD sync</strong> (no SSH).</p>
+
+        <h3>Phase 1 — Infrastructure (steps 1–4) ✓</h3>
+        <p><em>Reference — you have likely completed these.</em></p>
+        <p><strong>Step 1</strong> — Bootstrap state bucket:</p>
+        <pre>cd terraform/bootstrap
+terraform init
+terraform apply
+terraform output -raw backend_hcl > ../backend.hcl</pre>
+        <p><strong>Step 2</strong> — Main infrastructure:</p>
+        <pre>cd ..
+terraform init -backend-config=backend.hcl
+terraform apply</pre>
+        <p><strong>Step 3</strong> — On EC2 (SSH), verify k3s (wait for <code>user_data</code> 10–20 min on first boot):</p>
+        <pre>export KUBECONFIG=/etc/rancher/k3s/k3s.yaml
+kubectl get nodes
+kubectl get pods -A
+sudo tail -f /var/log/cloud-init-output.log</pre>
+        <p><strong>Step 4</strong> — On your PC, fix <code>k8s/deployment.yaml</code> (use <code>terraform output aws_account_id</code>). Commit in step 5.</p>
+
+        <h3 id="setup-phase2">Phase 2 — GitHub and CI (steps 5–7)</h3>
+
+        <h4>Step 5 — Create your GitHub repository and push code</h4>
+        <p><strong>When:</strong> After step 4, <strong>before</strong> ArgoCD or CI.</p>
+        <ol>
+          <li>GitHub → <strong>New repository</strong> (e.g. <code>datavault-gitops</code>).</li>
+          <li>From project root on your PC:</li>
+        </ol>
+        <pre>git init
+git add .
+git commit -m "Initial DataVault GitOps platform"
+git branch -M main
+git remote add origin https://github.com/YOUR_GITHUB_USER/datavault-gitops.git
+git push -u origin main</pre>
+        <p>Edit <code>argocd/application.yaml</code> — set <code>repoURL</code> to your repo, then:</p>
+        <pre>git add argocd/application.yaml k8s/deployment.yaml
+git commit -m "Configure ArgoCD repo URL and ECR image"
+git push</pre>
+
+        <h4>Step 6 — GitHub Actions secrets</h4>
+        <p><strong>When:</strong> After repo exists, <strong>before</strong> step 7.</p>
+        <ol>
+          <li>Create IAM user <code>datavault-github-actions</code> with ECR push permissions.</li>
+          <li>GitHub → <strong>Settings → Secrets → Actions</strong>: <code>AWS_ACCESS_KEY_ID</code>, <code>AWS_SECRET_ACCESS_KEY</code>.</li>
+        </ol>
+
+        <h4>Step 7 — First CI run (image to ECR)</h4>
+        <p><strong>When:</strong> After step 6. Pods need an image in ECR.</p>
+        <pre>git commit --allow-empty -m "Trigger first CI build"
+git push</pre>
+        <p>Check GitHub <strong>Actions</strong> (green) and AWS <strong>ECR → datavault-api</strong> (image tags). Then <code>git pull</code> if CI updated the manifest.</p>
+
+        <h3 id="setup-phase3">Phase 3 — Deploy to the cluster (step 8)</h3>
+        <p><strong>When:</strong> After step 7. Run on <strong>EC2 via SSH</strong>:</p>
+        <pre>export KUBECONFIG=/etc/rancher/k3s/k3s.yaml
+git clone https://github.com/YOUR_GITHUB_USER/datavault-gitops.git
+cd datavault-gitops</pre>
+
+        <p><strong>Path A — GitOps (recommended):</strong></p>
+        <pre>kubectl apply -f argocd/application.yaml
+kubectl get pods -w
+curl -s http://localhost:30080/health</pre>
+        <p>ArgoCD syncs <code>k8s/</code> from Git. UI: <code>http://&lt;EC2_IP&gt;:30081</code></p>
+
+        <p><strong>Path B — Manual first:</strong></p>
+        <pre>kubectl apply -f k8s/
+kubectl get pods -w</pre>
+        <p>Then apply <code>argocd/application.yaml</code> so Git owns future deploys.</p>
+
+        <h3>Step 8 verification</h3>
+        <table>
+          <thead><tr><th>Check</th><th>Command</th></tr></thead>
+          <tbody>
+            <tr><td>Nodes</td><td><code>kubectl get nodes</code></td></tr>
+            <tr><td>Pods</td><td><code>kubectl get pods</code></td></tr>
+            <tr><td>Health</td><td><code>curl http://&lt;EC2_IP&gt;:30080/health</code></td></tr>
+            <tr><td>ArgoCD</td><td><code>kubectl get application -n argocd</code></td></tr>
+          </tbody>
+        </table>
+
+        <h3>Ongoing deploys</h3>
+        <p>Push to <code>main</code> → GitHub Actions (test, build, ECR, manifest commit) → ArgoCD sync. No SSH for app deploys.</p>
+
+        <h3>Common issues (steps 5–8)</h3>
+        <table>
+          <thead><tr><th>Symptom</th><th>Fix</th></tr></thead>
+          <tbody>
+            <tr><td><code>ImagePullBackOff</code></td><td>Complete step 7; image must exist in ECR</td></tr>
+            <tr><td>ArgoCD sync failed</td><td>Fix <code>repoURL</code> in <code>argocd/application.yaml</code></td></tr>
+            <tr><td>CI ECR denied</td><td>Re-check step 6 secrets and IAM policy</td></tr>
+            <tr><td><code>kubectl</code> not found</td><td><code>export KUBECONFIG=/etc/rancher/k3s/k3s.yaml</code></td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section id="demos">
+        <h2>6. Demo Scenarios</h2>
+        <p>Use these during your Week 2 presentation to Priya Mehta and the Tier 1 bank compliance representative.</p>
+        <table>
+          <thead>
+            <tr><th>Demo</th><th>Command / Action</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><strong>Self-healing</strong></td><td><code>kubectl delete pod &lt;name&gt;</code> → new pod within ~30 seconds</td></tr>
+            <tr><td><strong>Rollback</strong></td><td>Deploy broken version → <code>git revert &lt;commit&gt;</code> → push → ArgoCD rolls back</td></tr>
+            <tr><td><strong>Audit trail</strong></td><td><code>git log k8s/deployment.yaml</code> — who deployed what and when</td></tr>
+            <tr><td><strong>HPA scaling</strong></td><td>Generate CPU load → <code>kubectl get hpa</code> shows replica count increasing</td></tr>
+            <tr><td><strong>Teardown</strong></td><td><code>terraform destroy</code> — removes EC2 and ECR from AWS</td></tr>
+          </tbody>
+        </table>
+
+        <h3>Presentation Talking Points</h3>
+        <div class="card-grid">
+          <div class="card">
+            <h4>Git log = audit trail</h4>
+            <p>Show commit author, message, timestamp, and PR approval.</p>
+          </div>
+          <div class="card">
+            <h4>Contrast with old process</h4>
+            <p>40 minutes and SSH into three servers → minutes and a Git push.</p>
+          </div>
+          <div class="card">
+            <h4>Self-healing</h4>
+            <p>Compare to 2h 33m on Valentine's Day — kill a pod live and time recovery.</p>
+          </div>
+        </div>
+      </section>
+
+      <section id="placeholders">
+        <h2>7. Placeholders You Must Fill In</h2>
+        <p>Before going live, replace these placeholders:</p>
+        <table>
+          <thead>
+            <tr><th>Location</th><th>What to change</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>terraform/bootstrap/</code></td><td>Step 1 — bootstrap state; generate <code>backend.hcl</code></td></tr>
+            <tr><td><code>terraform/terraform.tfvars</code></td><td>Step 2 — <code>ssh_key_name</code></td></tr>
+            <tr><td><code>k8s/deployment.yaml</code></td><td>Step 4 — AWS account ID in image URI</td></tr>
+            <tr><td><code>argocd/application.yaml</code></td><td>Step 5 — GitHub <code>repoURL</code></td></tr>
+            <tr><td>GitHub repository</td><td>Step 5 — create repo and push</td></tr>
+            <tr><td>GitHub repo secrets</td><td>Step 6 — <code>AWS_ACCESS_KEY_ID</code>, <code>AWS_SECRET_ACCESS_KEY</code></td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section id="architecture">
+        <h2>8. Architecture Summary</h2>
+        <table>
+          <thead>
+            <tr><th>Tool</th><th>What It Does</th><th>Why DataVault Needs It</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><strong>k3s</strong></td><td>Lightweight Kubernetes on a single EC2 instance</td><td>Self-healing, scaling, rollbacks — replaces 3 bare-metal servers</td></tr>
+            <tr><td><strong>ArgoCD</strong></td><td>GitOps — syncs cluster to Git</td><td>Every deployment and rollback is a Git commit (FCA audit trail)</td></tr>
+            <tr><td><strong>Kubernetes manifests</strong></td><td>Declarative desired state</td><td>What is in Git is what runs in production — no config drift</td></tr>
+            <tr><td><strong>HPA</strong></td><td>Auto-scales pods on CPU</td><td>Handles end-of-month compliance report spikes</td></tr>
+            <tr><td><strong>Probes</strong></td><td>Liveness + readiness health checks</td><td>Crashed pods restart; unready pods get no traffic</td></tr>
+            <tr><td><strong>GitHub Actions</strong></td><td>CI: test, build, push, update manifest</td><td>Automates build; triggers the GitOps loop</td></tr>
+            <tr><td><strong>Terraform</strong></td><td>Provisions ECR + EC2</td><td>Reproducible infrastructure anyone can recreate</td></tr>
+            <tr><td><strong>Amazon ECR</strong></td><td>Private container registry</td><td>Secure image storage; cluster pulls during deploy</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <footer class="doc-footer">
+        <p>Document generated for DataVault Technologies — Amdari Internship Programme</p>
+        <p>Confidential — Platform Engineering Remediation (90-day plan)</p>
+      </footer>
+    </main>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      mermaid.initialize({
+        startOnLoad: true,
+        theme: "dark",
+        securityLevel: "loose",
+        flowchart: {
+          useMaxWidth: false,
+          htmlLabels: true,
+          curve: "basis",
+          padding: 16,
+          nodeSpacing: 50,
+          rankSpacing: 60,
+        },
+        themeVariables: {
+          darkMode: true,
+          background: "#1a2332",
+          primaryColor: "#243044",
+          primaryTextColor: "#e8edf4",
+          primaryBorderColor: "#3b82f6",
+          secondaryColor: "#1a2332",
+          tertiaryColor: "#0f1419",
+          lineColor: "#60a5fa",
+          clusterBkg: "#1a2332",
+          clusterBorder: "#3b82f6",
+          titleColor: "#e8edf4",
+          edgeLabelBackground: "#243044",
+          fontFamily: "Segoe UI, system-ui, sans-serif",
+        },
+      });
+    });
+  </script>
+</body>
+</html>

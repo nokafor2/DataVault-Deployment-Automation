@@ -1,0 +1,25 @@
+# HorizontalPodAutoscaler: scales replica count based on CPU (requires metrics-server on k3s).
+# Handles end-of-month compliance report spikes without manual intervention.
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: datavault-api-hpa
+  namespace: default
+  labels:
+    app: datavault-api
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: datavault-api  # Must match deployment.metadata.name
+
+  minReplicas: 2  # Never below deployment baseline — maintains SLA during scale-down
+  maxReplicas: 5  # Cost cap for t3.small — increase if node has more capacity
+
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70  # Scale up when average CPU across pods exceeds 70%

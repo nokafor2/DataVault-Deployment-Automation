@@ -1,0 +1,20 @@
+# Service: stable network endpoint for ephemeral pods (IPs change on restart).
+apiVersion: v1
+kind: Service
+metadata:
+  name: datavault-api
+  namespace: default
+  labels:
+    app: datavault-api
+spec:
+  type: NodePort  # Exposes API on EC2 host port — accessible without a cloud load balancer
+
+  selector:
+    app: datavault-api  # Routes traffic to pods with this label
+
+  ports:
+    - name: http
+      port: 8000        # Port inside the cluster
+      targetPort: 8000  # Port on the container
+      nodePort: 30080   # Fixed host port — http://<EC2-public-ip>:30080
+      protocol: TCP

@@ -1,0 +1,9 @@
+# Copy to backend.hcl after running terraform/bootstrap (or paste bootstrap output):
+#   cd terraform/bootstrap && terraform output -raw backend_hcl > ../backend.hcl
+#
+# Example values (replace with your bootstrap outputs):
+bucket         = "datavault-tfstate-123456789012"
+key            = "datavault-gitops/terraform.tfstate"
+region         = "eu-west-2"
+dynamodb_table = "datavault-terraform-locks"
+encrypt        = true

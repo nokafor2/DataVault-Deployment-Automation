@@ -1,0 +1,26 @@
+# ArgoCD Application: tells ArgoCD which Git path to sync into the cluster.
+# Apply ONCE manually: kubectl apply -f argocd/application.yaml
+# Kept outside k8s/ so ArgoCD does not try to manage its own Application resource.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: datavault-api
+  namespace: argocd  # Application CRDs live in the argocd namespace
+spec:
+  project: default
+
+  source:
+    repoURL: https://github.com/YOUR_ORG/datavault-gitops.git  # REPLACE with your repo
+    targetRevision: main   # Branch ArgoCD watches for changes
+    path: k8s              # Only manifests — not app/ or terraform/
+
+  destination:
+    server: https://kubernetes.default.svc  # In-cluster API server
+    namespace: default                       # Where Deployment/Service/HPA are created
+
+  syncPolicy:
+    automated:
+      prune: true      # Delete cluster resources removed from Git
+      selfHeal: true   # Revert manual kubectl edits — cluster must match Git
+    syncOptions:
+      - CreateNamespace=false  # default namespace already exists
