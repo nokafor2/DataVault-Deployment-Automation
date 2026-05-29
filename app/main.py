@@ -11,6 +11,7 @@ Terraform infrastructure, and GitHub Actions CI pipeline to deploy it.
 
 import os
 import hashlib
+import subprocess
 import time
 import random
 from datetime import datetime
@@ -22,10 +23,12 @@ from pydantic import BaseModel
 # This is the main application for the DataVault Compliance API
 # It is a simple API that allows you to manage the audit trail and compliance records 
 # ── Application setup ─────────────────────────────────────────────────────────
+APP_VERSION = "2.4.2"
+
 app = FastAPI(
     title="DataVault Compliance API",
     description="FCA-compliant audit trail platform for UK financial services",
-    version="2.4.2"
+    version=APP_VERSION,
 )
 
 app.add_middleware(
@@ -42,6 +45,49 @@ LOG_LEVEL = os.environ.get("LOG_LEVEL", "info")
 
 # Track startup time for uptime reporting
 START_TIME = time.time()
+
+_REPO_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+
+
+def _git_output(args: list[str], cwd: str = _REPO_ROOT) -> str:
+    try:
+        result = subprocess.run(
+            ["git", *args],
+            capture_output=True,
+            text=True,
+            timeout=5,
+            cwd=cwd,
+        )
+        if result.returncode == 0:
+            return result.stdout.strip()
+    except (OSError, subprocess.TimeoutExpired):
+        pass
+    return ""
+
+
+def _resolve_deployment_metadata() -> tuple[str, str, str]:
+    """Git commit, message, and commit time — from K8s env or local git."""
+    git_commit = os.environ.get("GIT_COMMIT", "").strip()
+    commit_message = os.environ.get("GIT_COMMIT_MESSAGE", "").strip()
+    deployed_at = os.environ.get("GIT_DEPLOYED_AT", "").strip()
+
+    if not git_commit:
+        git_commit = _git_output(["rev-parse", "HEAD"]) or "unknown"
+
+    if git_commit != "unknown":
+        if not commit_message:
+            commit_message = _git_output(["log", "-1", "--format=%s", git_commit])
+        if not deployed_at:
+            deployed_at = _git_output(["log", "-1", "--format=%cI", git_commit])
+
+    return (
+        git_commit,
+        commit_message or "unknown",
+        deployed_at or "unknown",
+    )
+
+
+_GIT_COMMIT, _COMMIT_MESSAGE, _DEPLOYED_AT = _resolve_deployment_metadata()
 
 # ── In-memory audit store ─────────────────────────────────────────────────────
 audit_entries: list = [
@@ -119,7 +165,7 @@ def health():
     return {
         "status": "ok",
         "service": "datavault-api",
-        "version": "2.4.1",
+        "version": APP_VERSION,
         "environment": APP_ENV,
         "uptime_seconds": uptime_seconds,
         "timestamp": datetime.utcnow().isoformat(),
@@ -229,10 +275,11 @@ def get_client(client_id: str, api_key: str = Depends(require_api_key)):
 def deployment_status():
     """Shows current deployment info — useful for demonstrating GitOps rollout."""
     return {
-        "version": "2.4.1",
+        "version": APP_VERSION,
         "environment": APP_ENV,
-        "deployed_at": datetime.utcnow().isoformat(),
+        "deployed_at": _DEPLOYED_AT,
         "pod_name": os.environ.get("HOSTNAME", "unknown"),
-        "git_commit": os.environ.get("GIT_COMMIT", "unknown"),
-        "message": "This version was deployed via GitOps — every change is a Git commit."
+        "git_commit": _GIT_COMMIT,
+        "commit_message": _COMMIT_MESSAGE,
+        "message": "This version was deployed via GitOps — every change is a Git commit.",
     }

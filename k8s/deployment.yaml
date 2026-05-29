@@ -46,6 +46,10 @@ spec:
           env:
             - name: GIT_COMMIT
               value: "3d86296922fd2b12e41db27d12ea7342a758d7fd"  # CI updates this — visible at /api/deployment/status
+            - name: GIT_COMMIT_MESSAGE
+              value: "unknown"  # CI updates with commit subject
+            - name: GIT_DEPLOYED_AT
+              value: "unknown"  # CI updates with commit timestamp (ISO 8601)
 
           resources:
             requests:  # Minimum guaranteed — used by scheduler and HPA baseline

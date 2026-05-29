@@ -107,6 +107,9 @@ def test_deployment_status():
     data = response.json()
     assert "version" in data
     assert "environment" in data
+    assert "commit_message" in data
+    assert "deployed_at" in data
+    assert data["deployed_at"] != ""
 
 
 def test_invalid_api_key():

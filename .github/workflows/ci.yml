@@ -82,8 +82,12 @@ jobs:
         run: |
           # Point deployment at new ECR image
           sed -i "s|image: .*dkr.ecr.*amazonaws.com/datavault-api:.*|image: ${IMAGE_URI}|" k8s/deployment.yaml
-          # Record deploy commit in pod env (visible via /api/deployment/status)
+          # Record deploy commit metadata in pod env (visible via /api/deployment/status)
+          COMMIT_MSG=$(git log -1 --format=%s "${GIT_COMMIT}")
+          DEPLOYED_AT=$(git log -1 --format=%cI "${GIT_COMMIT}")
           sed -i '/name: GIT_COMMIT/,+1 s|value: ".*"|value: "'"${GIT_COMMIT}"'"|' k8s/deployment.yaml
+          sed -i '/name: GIT_COMMIT_MESSAGE/,+1 s|value: ".*"|value: "'"${COMMIT_MSG//\"/\\\"}"'"|' k8s/deployment.yaml
+          sed -i '/name: GIT_DEPLOYED_AT/,+1 s|value: ".*"|value: "'"${DEPLOYED_AT}"'"|' k8s/deployment.yaml
 
       - name: Commit manifest change (GitOps audit trail)
         env:
