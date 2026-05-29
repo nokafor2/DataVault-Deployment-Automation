@@ -271,6 +271,7 @@ def get_client(client_id: str, api_key: str = Depends(require_api_key)):
     return {**client, "audit_entry_count": len(client_audits)}
 
 # ── Deployment simulation (for GitOps demo) ───────────────────────────────────
+# Updated this to include the commit message and deployed at timestamp
 @app.get("/api/deployment/status")
 def deployment_status():
     """Shows current deployment info — useful for demonstrating GitOps rollout."""
