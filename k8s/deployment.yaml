@@ -30,7 +30,7 @@ spec:
         - name: datavault-api
           # REPLACE 000000000000 with terraform output aws_account_id before first deploy
           # CI overwrites the tag on every push to main (GitHub Actions)
-          image: 791778419317.dkr.ecr.eu-west-2.amazonaws.com/datavault-api:228db3d78ab33454f64d2b0c5a0ec87ced7f3c8c
+          image: 791778419317.dkr.ecr.eu-west-2.amazonaws.com/datavault-api:eb5a4c984f673699188cd8ba03008f4fb485e3ed
           imagePullPolicy: Always  # Always pull — ensures new ECR tags are picked up
 
           ports:
@@ -46,11 +46,11 @@ spec:
 
           env:
             - name: GIT_COMMIT
-              value: "228db3d78ab33454f64d2b0c5a0ec87ced7f3c8c"  # CI updates this — visible at /api/deployment/status
+              value: "eb5a4c984f673699188cd8ba03008f4fb485e3ed"  # CI updates this — visible at /api/deployment/status
             - name: GIT_COMMIT_MESSAGE
-              value: "Implemented a durable ECR pull setup"  # CI updates with commit subject
+              value: "Updated main.py with a comment"  # CI updates with commit subject
             - name: GIT_DEPLOYED_AT
-              value: "2026-05-29T12:17:22+01:00"  # CI updates with commit timestamp (ISO 8601)
+              value: "2026-05-29T12:42:26+01:00"  # CI updates with commit timestamp (ISO 8601)
 
           resources:
             requests:  # Minimum guaranteed — used by scheduler and HPA baseline
