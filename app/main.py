@@ -272,6 +272,7 @@ def get_client(client_id: str, api_key: str = Depends(require_api_key)):
 
 # ── Deployment simulation (for GitOps demo) ───────────────────────────────────
 # Updated this to include the commit message and deployed at timestamp
+# This is the deployment status endpoint that is used to show the deployment information
 @app.get("/api/deployment/status")
 def deployment_status():
     """Shows current deployment info — useful for demonstrating GitOps rollout."""
