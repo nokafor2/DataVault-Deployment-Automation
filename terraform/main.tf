@@ -119,7 +119,7 @@ resource "aws_instance" "k3s" {
   iam_instance_profile   = aws_iam_instance_profile.k3s_ec2.name
   vpc_security_group_ids = [aws_security_group.k3s.id]
 
-  # Rendered at launch — installs k3s, metrics-server, ECR login, ArgoCD
+  # Rendered at launch — installs k3s, metrics-server, ECR pull secret, ArgoCD
   user_data = templatefile("${path.module}/user_data.sh", {
     aws_region     = var.aws_region
     ecr_registry   = "${data.aws_caller_identity.current.account_id}.dkr.ecr.${var.aws_region}.amazonaws.com"

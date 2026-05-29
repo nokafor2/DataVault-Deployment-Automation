@@ -25,6 +25,7 @@ spec:
       labels:
         app: datavault-api
     spec:
+      serviceAccountName: datavault-api  # imagePullSecrets → ecr-pull-secret (see serviceaccount.yaml)
       containers:
         - name: datavault-api
           # REPLACE 000000000000 with terraform output aws_account_id before first deploy

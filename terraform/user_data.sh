@@ -28,19 +28,26 @@ kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/late
 kubectl patch deployment metrics-server -n kube-system --type=json \
   -p='[{"op":"add","path":"/spec/template/spec/containers/0/args/-","value":"--kubelet-insecure-tls"}]' || true
 
-# ECR login script — k3s/containerd needs registry auth to pull private images
-cat >/usr/local/bin/ecr-login.sh <<'ECRSCRIPT'
+# ECR pull secret for k3s/containerd (docker login does NOT auth containerd image pulls)
+cat >/usr/local/bin/ecr-refresh-k8s-secret.sh <<'ECRSCRIPT'
 #!/bin/bash
+set -euo pipefail
+export KUBECONFIG=/etc/rancher/k3s/k3s.yaml
 AWS_REGION="${aws_region}"
 ECR_REGISTRY="${ecr_registry}"
-aws ecr get-login-password --region "$AWS_REGION" | \
-  docker login --username AWS --password-stdin "$ECR_REGISTRY"
+TOKEN="$(aws ecr get-login-password --region "$AWS_REGION")"
+kubectl create secret docker-registry ecr-pull-secret \
+  --namespace=default \
+  --docker-server="$ECR_REGISTRY" \
+  --docker-username=AWS \
+  --docker-password="$TOKEN" \
+  --dry-run=client -o yaml | kubectl apply -f -
 ECRSCRIPT
-chmod +x /usr/local/bin/ecr-login.sh
-/usr/local/bin/ecr-login.sh
+chmod +x /usr/local/bin/ecr-refresh-k8s-secret.sh
+/usr/local/bin/ecr-refresh-k8s-secret.sh
 
-# Refresh ECR token every 6 hours (tokens expire after 12h)
-echo "0 */6 * * * root /usr/local/bin/ecr-login.sh" >> /etc/crontab
+# Host cron backup until Argo CD syncs ecr-refresh-cronjob.yaml (tokens expire after ~12h)
+echo "0 */6 * * * root /usr/local/bin/ecr-refresh-k8s-secret.sh" >> /etc/crontab
 
 # ArgoCD: GitOps controller — watches Git repo and syncs k8s/ manifests
 kubectl create namespace argocd --dry-run=client -o yaml | kubectl apply -f -

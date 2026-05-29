@@ -1,0 +1,12 @@
+# Non-secret ECR settings for the pull-secret refresh Job/CronJob.
+# REPLACE ECR_REGISTRY with terraform output: <account_id>.dkr.ecr.<region>.amazonaws.com
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ecr-config
+  namespace: default
+  labels:
+    app: datavault-api
+data:
+  AWS_REGION: "eu-west-2"
+  ECR_REGISTRY: "791778419317.dkr.ecr.eu-west-2.amazonaws.com"

@@ -1,0 +1,106 @@
+# Refreshes ecr-pull-secret every 6 hours (ECR tokens expire after ~12h).
+# hostNetwork: true so the Job pod uses the EC2 instance IAM role via IMDS (k3s on EC2).
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ecr-refresh-script
+  namespace: default
+  labels:
+    app: datavault-api
+data:
+  refresh.sh: |
+    #!/bin/sh
+    set -eu
+    KUBECTL_VERSION="$(curl -fsSL https://dl.k8s.io/release/stable.txt)"
+    curl -fsSL -o /usr/local/bin/kubectl \
+      "https://dl.k8s.io/release/${KUBECTL_VERSION}/bin/linux/amd64/kubectl"
+    chmod +x /usr/local/bin/kubectl
+    TOKEN="$(aws ecr get-login-password --region "${AWS_REGION}")"
+    kubectl create secret docker-registry ecr-pull-secret \
+      --namespace=default \
+      --docker-server="${ECR_REGISTRY}" \
+      --docker-username=AWS \
+      --docker-password="${TOKEN}" \
+      --dry-run=client -o yaml | kubectl apply -f -
+    echo "ecr-pull-secret refreshed at $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: ecr-pull-secret-refresh
+  namespace: default
+  labels:
+    app: datavault-api
+spec:
+  schedule: "0 */6 * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            app: datavault-api
+            job: ecr-pull-secret-refresh
+        spec:
+          serviceAccountName: ecr-refresh
+          hostNetwork: true
+          dnsPolicy: ClusterFirstWithHostNet
+          restartPolicy: OnFailure
+          containers:
+            - name: refresh
+              image: amazon/aws-cli:2.15.30
+              command: ["/bin/sh", "/scripts/refresh.sh"]
+              envFrom:
+                - configMapRef:
+                    name: ecr-config
+              volumeMounts:
+                - name: script
+                  mountPath: /scripts
+                  readOnly: true
+          volumes:
+            - name: script
+              configMap:
+                name: ecr-refresh-script
+                defaultMode: 0755
+---
+# Runs once after each Argo CD sync so a fresh secret exists without waiting for the CronJob.
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: ecr-pull-secret-refresh-once
+  namespace: default
+  labels:
+    app: datavault-api
+  annotations:
+    argocd.argoproj.io/hook: PostSync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+spec:
+  ttlSecondsAfterFinished: 300
+  template:
+    metadata:
+      labels:
+        app: datavault-api
+        job: ecr-pull-secret-refresh-once
+    spec:
+      serviceAccountName: ecr-refresh
+      hostNetwork: true
+      dnsPolicy: ClusterFirstWithHostNet
+      restartPolicy: OnFailure
+      containers:
+        - name: refresh
+          image: amazon/aws-cli:2.15.30
+          command: ["/bin/sh", "/scripts/refresh.sh"]
+          envFrom:
+            - configMapRef:
+                name: ecr-config
+          volumeMounts:
+            - name: script
+              mountPath: /scripts
+              readOnly: true
+      volumes:
+        - name: script
+          configMap:
+            name: ecr-refresh-script
+            defaultMode: 0755

@@ -108,7 +108,7 @@ The **Dockerfile** packages `main.py` on Python 3.11 and runs `uvicorn` on port 
 
 1. Installs **k3s**
 2. Installs **metrics-server** (for HPA)
-3. Configures **ECR login** (cron every 6 hours)
+3. Creates **`ecr-pull-secret`** for k3s/containerd ECR pulls (refreshed every 6 hours; see `k8s/ecr-refresh-cronjob.yaml`)
 4. Installs **ArgoCD**
 
 After `terraform apply`, use outputs (`ecr_repository_url`, `k3s_public_ip`) to update `k8s/deployment.yaml` image URI and configure CI secrets.
@@ -411,6 +411,7 @@ No SSH required for normal application deploys.
 
 | Symptom | Likely cause | Fix |
 |---------|----------------|-----|
+| `ImagePullBackOff` / ECR **403 Forbidden** | Missing ECR auth for k3s (not Docker) | Ensure `ecr-pull-secret` exists: `kubectl get secret ecr-pull-secret`; sync `k8s/` or run `/usr/local/bin/ecr-refresh-k8s-secret.sh` on EC2 |
 | `ImagePullBackOff` | No image in ECR yet | Complete step 7; confirm ECR has `datavault-api` image |
 | ArgoCD **Unknown** / sync failed | Wrong `repoURL` or private repo without credentials | Fix `argocd/application.yaml`; for private repos configure ArgoCD repo credentials |
 | CI **Access Denied** on ECR | Missing/wrong GitHub secrets | Re-check step 6 IAM policy and secrets |
