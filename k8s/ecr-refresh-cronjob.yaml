@@ -6,7 +6,7 @@ metadata:
   name: ecr-refresh-script
   namespace: default
   labels:
-    app: datavault-api
+    app: ecr-pull-secret-refresh
 data:
   refresh.sh: |
     #!/bin/sh
@@ -30,7 +30,7 @@ metadata:
   name: ecr-pull-secret-refresh
   namespace: default
   labels:
-    app: datavault-api
+    app: ecr-pull-secret-refresh
 spec:
   schedule: "0 */6 * * *"
   concurrencyPolicy: Forbid
@@ -41,7 +41,7 @@ spec:
       template:
         metadata:
           labels:
-            app: datavault-api
+            app: ecr-pull-secret-refresh
             job: ecr-pull-secret-refresh
         spec:
           serviceAccountName: ecr-refresh
@@ -72,7 +72,7 @@ metadata:
   name: ecr-pull-secret-refresh-once
   namespace: default
   labels:
-    app: datavault-api
+    app: ecr-pull-secret-refresh
   annotations:
     argocd.argoproj.io/hook: PostSync
     argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
@@ -81,7 +81,7 @@ spec:
   template:
     metadata:
       labels:
-        app: datavault-api
+        app: ecr-pull-secret-refresh
         job: ecr-pull-secret-refresh-once
     spec:
       serviceAccountName: ecr-refresh
